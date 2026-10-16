@@ -1,0 +1,7 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://dkes8tfwymer7"]
+
+[ext_resource type="Texture2D" uid="uid://cxxq1xqwgegux" path="res://Textures/Noise/combinedNoise.png" id="1_ulgf3"]
+
+[resource]
+heightmap_enabled = true
+heightmap_texture = ExtResource("1_ulgf3")

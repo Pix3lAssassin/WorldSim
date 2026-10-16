@@ -1,0 +1,78 @@
+[gd_scene format=3 uid="uid://dditc6mx7cong"]
+
+[ext_resource type="Script" uid="uid://blfwgoavnypko" path="res://Scripts/MapGenerator.gd" id="1_lyeei"]
+[ext_resource type="Material" uid="uid://c3w56m8i0hci" path="res://Materials/MapMaterial.tres" id="2_ybci3"]
+[ext_resource type="Texture2D" uid="uid://bmdyybgnxtm67" path="res://Textures/Noise/continentNoise.png" id="3_5ukr8"]
+[ext_resource type="Texture2D" uid="uid://ptcdh5fp8jpj" path="res://Textures/Noise/continentMask.png" id="4_o06y3"]
+[ext_resource type="Texture2D" uid="uid://bk68xidi0kuwa" path="res://Textures/Noise/heightNoise.png" id="5_k7acu"]
+[ext_resource type="Texture2D" uid="uid://cxxq1xqwgegux" path="res://Textures/Noise/combinedNoise.png" id="6_5v1tr"]
+[ext_resource type="Script" uid="uid://ct5w0u31ebtph" path="res://Scenes/noclip_camera.gd" id="7_o06y3"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_k7acu"]
+shading_mode = 0
+albedo_color = Color(0, 0.34375, 1, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_uh4de"]
+material = SubResource("StandardMaterial3D_k7acu")
+size = Vector2(256, 256)
+
+[sub_resource type="Environment" id="Environment_xkb4e"]
+ambient_light_source = 2
+ambient_light_color = Color(0.18000486, 0.18000486, 0.18000486, 1)
+ambient_light_energy = 7.8
+
+[node name="Node3D" type="Node3D" unique_id=1606227019]
+
+[node name="Map" type="Node3D" parent="." unique_id=81553896]
+
+[node name="Water" type="MeshInstance3D" parent="Map" unique_id=1057832084]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+transparency = 0.4
+mesh = SubResource("PlaneMesh_uh4de")
+
+[node name="MapGenerator" type="Node" parent="Map" unique_id=772348083]
+script = ExtResource("1_lyeei")
+material = ExtResource("2_ybci3")
+seed = "1"
+step = 100
+continentFrequency = 8.0
+landFrequency = 2.0
+
+[node name="ContinentNoise" type="Sprite2D" parent="Map/MapGenerator" unique_id=1054499091]
+visible = false
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("3_5ukr8")
+offset = Vector2(512, 512)
+
+[node name="ContinetMaskBlurred" type="Sprite2D" parent="Map/MapGenerator" unique_id=785508257]
+visible = false
+position = Vector2(0, 512)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("4_o06y3")
+offset = Vector2(512, 512)
+
+[node name="HeightNoise" type="Sprite2D" parent="Map/MapGenerator" unique_id=2127840496]
+visible = false
+position = Vector2(512, 0)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("5_k7acu")
+offset = Vector2(512, 512)
+
+[node name="CombinedHeights" type="Sprite2D" parent="Map/MapGenerator" unique_id=1071443970]
+visible = false
+position = Vector2(512, 512)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("6_5v1tr")
+offset = Vector2(512, 512)
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=81137968]
+transform = Transform3D(1, 0, 0, 0, 0.25881904, 0.9659259, 0, -0.9659259, 0.25881904, 0, 128, 0)
+fov = 87.876
+size = 256.0
+script = ExtResource("7_o06y3")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=810072657]
+transform = Transform3D(0.30526423, 0.5499011, -0.77744615, 0, 0.81641555, 0.5774649, 0.9522677, -0.17627937, 0.24922246, -3.2428117, 3.4761312, -0.54838395)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=818104753]
+environment = SubResource("Environment_xkb4e")

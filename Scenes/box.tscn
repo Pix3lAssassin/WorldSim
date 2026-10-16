@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://5r2giucb7efn"]
+
+[ext_resource type="Script" uid="uid://dcjhn1l775jgu" path="res://Scripts/boxTile.gd" id="1_xkb4e"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5jxic"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_egeqm"]
+material = SubResource("StandardMaterial3D_5jxic")
+
+[node name="Box" type="Node3D" unique_id=606169392]
+script = ExtResource("1_xkb4e")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=246103335]
+mesh = SubResource("BoxMesh_egeqm")
