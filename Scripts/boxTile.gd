@@ -14,4 +14,4 @@ func _process(delta: float) -> void:
 func init(locX: int, locY: int, sizeX: int, sizeY, elevation: float, oceanDepth) -> void:
 	position.x = locX - sizeX / 2
 	position.z = locY - sizeY / 2
-	position.y = elevation / 4 - oceanDepth / 4 - 0.5
+	scale.y = (elevation / 4 - oceanDepth / 4 - 0.5) * -1

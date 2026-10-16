@@ -8,6 +8,7 @@ const BOX_TILE = preload("res://Scenes/box.tscn")
 @export var width = 256
 @export var height = 256
 @export var step = 127
+# Depth in pixel colors 0-255
 @export var oceanDepth: float = 16.0
 @export var worldBoundaryStrength = 0.1
 @export var worldBoundaryVariance = 0.02
@@ -53,47 +54,56 @@ func _ready():
 	heightNoise.frequency = landFrequency * 0.0075
 	#heightNoise.frequency = 0.1
 	
+	# Percentage of height for land and ocean
 	var oceanDetail: float = 1.0 / (256.0 / oceanDepth) 
 	var landDetail: float = 1.0 - oceanDetail
 	
+	# Arrays to store height/pixel data
 	var continentMaskData = PackedByteArray()
 	var continentNoiseData = PackedByteArray()
 	var combinedNoiseData = PackedByteArray()
+	
+	# Loop to calculate land mask
 	for y in height:
 		for x in width:
 			var xZeroDist = x / float(width)
 			var xMaxDist = 1 - x / float(width)
 			var yZeroDist = y / float(height)
 			var yMaxDist = 1 - y / float(height)
+			# Calculate the distance to the closest edge of the current pixel location
 			var closestEdgeDist = minf(minf(xZeroDist, xMaxDist), minf(yZeroDist, yMaxDist))
 			closestEdgeDist = maxf(0, closestEdgeDist + rng.get_noise_2d(x, y) * worldBoundaryVariance)
 			
-			
-			
-			var val: float = continentNoise.get_noise_2d(x, y)
+			# Store noise values for debug (Noise values generally between -1 and 1)
+			var val: float = continentNoise.get_noise_2d(x, y) 
 			continentNoiseData.append(val * 127 + 127)
 			
+			# Calculate height value of pixel with falloff for map border taken into account
 			var bump = (val * 127 + 127) * minf(closestEdgeDist * (1 / worldBoundaryStrength), 1)
 			
-			# Continent mask
+			
 			if step >= 0:
 				
+				# Continent mask
 				var result = 0
 				if bump > step:
 					result = 255
-				
 				
 				continentMaskData.append(result)
 			else:
 				continentMaskData.append(bump)
 	
-	var minSize = 128
+	# Save continent mask
 	var continentMaskImage = Image.create_from_data(width, height, false, Image.FORMAT_L8, continentMaskData)
 	continentMaskImage.save_png("res://Textures/Noise/continentMask.png")
+	
+	# Resize image for blurring/smoothing
+	var minSize = 128
 	continentMaskImage.resize(minSize, minSize)
 	var maskData = continentMaskImage.get_data()
 	var finalMaskData = PackedByteArray()
 	
+	# Blur downsized image
 	var blurSize: float = 25.0
 	var blurOffset: int = blurSize / 2
 	var blurIntensity: float = 1.0 / (blurSize * blurSize)
@@ -102,6 +112,7 @@ func _ready():
 		for x in continentMaskImage.get_width():
 			var b: float = 0.0
 			
+			# Blur kernel loop
 			for m in range(-blurOffset, blurOffset + 1):
 				for n in range(-blurOffset, blurOffset + 1):
 					var c = clamp(y + m, 0, continentMaskImage.get_height() - 1)
@@ -113,11 +124,12 @@ func _ready():
 			
 			finalMaskData.append(b)
 	
+	# Resize image to initial size and save it
 	continentMaskImage.set_data(minSize, minSize, false, Image.FORMAT_L8, finalMaskData)
 	continentMaskImage.resize(height, width, Image.INTERPOLATE_CUBIC)
 	continentMaskImage.save_png("res://Textures/Noise/continentMaskBlurred.png")
 	
-	var heightNoiseData = PackedByteArray()
+	# Find min and max for normalizing land noise
 	var minNoise = 1;
 	var maxNoise = -1;
 	for y in height:
@@ -128,6 +140,8 @@ func _ready():
 			if heightVal > maxNoise:
 				maxNoise = heightVal
 	
+	# Calculate normalized heights
+	var heightNoiseData = PackedByteArray()
 	var noiseDist = 1 / (maxNoise - minNoise)
 	for y in height:
 		for x in width:
@@ -136,6 +150,7 @@ func _ready():
 			var landHeight: float = clampf(heightVal * 256, 0, 255)
 			heightNoiseData.append(landHeight)
 	
+	# Combine mask, slope blur, and final noise texture for combined heightmap
 	for y in height:
 		for x in width:
 			var index = y * width + x
@@ -152,7 +167,7 @@ func _ready():
 			
 			combinedNoiseData.append(finalHeight)
 	
-	
+	# Save remaining heightmaps for debug
 	var continentNoiseImage = Image.create_from_data(width, height, false, Image.FORMAT_L8, continentNoiseData)
 	continentNoiseImage.save_png("res://Textures/Noise/continentNoise.png")
 
@@ -164,14 +179,18 @@ func _ready():
 	
 	var imageTexture = ImageTexture.create_from_image(combinedNoiseImage)
 	
-	#get_parent().get_child(0).get_surface_override_material(0).set_texture(StandardMaterial3D.TEXTURE_ALBEDO,wWWWWWWWWWWWWWWWWWWw imageTexture)
+	processErosion(combinedNoiseData)
 	
+	# Generate 3D cube terrain from heightmap
 	for y in height:
 		for x in width:
 			var tile = BOX_TILE.instantiate()
 			
 			tile.init(x, y, width, height, combinedNoiseData.get(y * width + x), oceanDepth)
 			add_child(tile)
+
+func processErosion (heightMap: PackedByteArray):
+	pass # To do
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
